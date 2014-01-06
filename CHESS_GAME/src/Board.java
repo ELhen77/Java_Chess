@@ -1,4 +1,4 @@
-
+import java.util.ArrayList;
 public class Board {
 	
 	static boolean GameProgress ;
@@ -6,6 +6,7 @@ public class Board {
 	public boolean firstRound = true;
 
 	//DECIDED TO USE ENUMS INSTEAD FOR BOARD, 
+	//enums were a giant mistake, enums are statically defined classes, All Pawn enums share teh same address. each one mutates the other ones
 	public enum Pieces {
 		
 		Pawn('P'), Rook('R'), Bishop('B'), Knight('H'), Queen('Q') , King('K');
@@ -78,15 +79,30 @@ public class Board {
 		Piece_board[1][7] = P8;
 		
 	
-	
-		Pawn p = new Pawn();
-		
-		p.playerOne = false;
-	
-	
-		
-		for(int i = 0; i < 8; i++)
-			Piece_board[6][i] = p;
+		//player two pieces
+		Pawn p1 = new Pawn();
+		Piece_board[6][0] = p1;
+		//pawn 2
+		Pawn p2 = new Pawn();
+		Piece_board[6][1] = p2;
+		//pawn 3
+		Pawn p3 = new Pawn();
+		Piece_board[2][2] = p3;
+		//pawn 4
+		Pawn p4 = new Pawn();
+		Piece_board[6][3] = p4;
+		//pawn 5
+		Pawn p5 = new Pawn();
+		Piece_board[6][4] = p5;
+		//pawn 6
+		Pawn p6 = new Pawn();
+		Piece_board[6][5] = p6;
+		//pawn 7
+		Pawn p7 = new Pawn();
+		Piece_board[6][6] = p7;
+		//pawn 8
+		Pawn p8 = new Pawn();
+		Piece_board[6][7] = p8;
 		
 		
 		
@@ -158,41 +174,153 @@ public class Board {
 		
 	}
 	
-	
+	//refactored created one gaint method with diff vars that determine movement range i.e moving first or flipped
 	public boolean Specific_Piece_Move(PIECE piece, int X, int Y){
 		boolean validChoice = false;
-		int Xcor = 0;
-		int Ycor = 0;
+		
+		
+		
+		int Xcor = piece.x;
+		int Ycor = piece.y;
 		PIECE P = piece;
 		//break down into special methods i.e MOVEPAWN(PIECE , X ,Y)
-		if(piece == P){
-			Xcor = piece.x;
-			Ycor = piece.y;
-				if(piece.hasntmoved == true){
-					piece.hasntmoved = false;
-					if(X- Ycor <= 2 &&  X- Ycor >= 0){
-						validChoice = MovePawn(P,X,Y);
-					}
-					else if(Ycor  - X <= 2 && Ycor - X >= 0){
-						validChoice = MovePawn(P,X,Y);
-					}	
-				}
-		}
+		if(piece == P)
+			validChoice = MovePawn(piece, X , Y);
+		
+		if(validChoice == true)
+			MoveGeneral( piece, X,  Y);
+		
 		return validChoice;
 	}
 	
-	public boolean MovePawn(PIECE piece, int X, int Y){
-		int Xcor = 0;
-		int Ycor = 0;
+	// make each possible movement  avaible move more modular, no overlapping logic, break down every possible movement 
+	private boolean MovePawn(PIECE piece, int X, int Y) {
+		boolean valid = false;
+		
+		int hasMoved;
+		if(piece.hasntmoved == true)
+			hasMoved = 1;
+		else
+			hasMoved = 0;
+		
+		int playerOnesTurn;
+		if(piece.playerOne == true)
+			playerOnesTurn = 1;
+		else
+			playerOnesTurn = -1;
+		
+		ChessCor MovCoor = new ChessCor(X,Y);
+		ChessCor listofValidPos[] = new ChessCor[4];
+		
+		boolean PieceInWay = false;
+		int Xcor = piece.x;
+		int Ycor = piece.y;
+		
+		//check to see if anything is in front of you
+		if(Piece_board[Ycor + playerOnesTurn*(1)][Xcor] == null){
+			listofValidPos[0] = new ChessCor(  (Ycor + playerOnesTurn*(1)) ,Xcor );
+		}
+		else
+			PieceInWay = true;
+		//if no piece is in the way you can move a second time if you have already moved, hasmoved is zero so you get the same coor agian 
+		if(PieceInWay ==  false){
+			if(Piece_board[Ycor + playerOnesTurn*(1 + hasMoved)][Xcor] == null){
+				listofValidPos[1] = new ChessCor( (Ycor + playerOnesTurn*(1 + hasMoved)) , Xcor);
+			}
+		}
+		
+		
+		int newYcor = Ycor + playerOnesTurn*1;
+		int newXcor = Xcor + playerOnesTurn*1;
+				
+		System.out.println("This coor is " +  (newYcor) + " , " + newXcor );
+		boolean notNull = false;
+		boolean  isplayerNotMatching  = false;
+		
+		try{
+		
+		 notNull = Piece_board[Ycor + playerOnesTurn*1][Xcor + playerOnesTurn*1] != null; 
+		
+		 isplayerNotMatching = Piece_board[Ycor + playerOnesTurn*1][Xcor + playerOnesTurn*1].playerOne != Piece_board[Ycor][Xcor].playerOne; 
+		
+		System.out.println(" is not NotNull true : " + notNull);
+		System.out.println(" Are the pieces not matching  : " + isplayerNotMatching);
+		System.out.println("------------------------------------------------------------");
+		}
+		catch(NullPointerException exp){
+			System.out.println(" is not NotNull true : " + notNull);
+		}
+		catch(ArrayIndexOutOfBoundsException ex ){
+			;
+		}
+		
+		
+		try{
+		//check piece is to the upper right, make sure is not null and the piece is not the same as the current moving  piece 
+		if( notNull && isplayerNotMatching)
+				listofValidPos[2] = new ChessCor( (Ycor + playerOnesTurn*(1)) , Xcor + playerOnesTurn*1);
+		}
+		catch(ArrayIndexOutOfBoundsException ex){
+			;
+			
+		}
+		
+		
+		 newYcor = Ycor + playerOnesTurn*1;
+		 newXcor = Xcor - playerOnesTurn*1;
+				
+		System.out.println("This coor is " +  (newYcor) + " , " + newXcor );
+		
+		notNull = false;
+		isplayerNotMatching = false;
+		
+		try{
+	    notNull = Piece_board[Ycor + playerOnesTurn*1][Xcor - playerOnesTurn*1] != null; 
+		
+	    isplayerNotMatching = Piece_board[Ycor + playerOnesTurn*1][Xcor - playerOnesTurn*1].playerOne != Piece_board[Ycor][Xcor].playerOne; 
+		
+		System.out.println(" is not NotNull true : " + notNull);
+		System.out.println(" Are the pieces not matching  : " + isplayerNotMatching);
+		System.out.println("------------------------------------------------------------");}
+		catch(NullPointerException exp ){
+			System.out.println(" is not NotNull true : " + notNull);
+		}
+		catch(ArrayIndexOutOfBoundsException ex ){
+			;
+		}
+		
+		try{
+		//check piece is to the upper right, make sure is not null and the piece is not the same as the current moving  piece 
+		if(notNull && isplayerNotMatching)
+				listofValidPos[3] = new ChessCor( (Ycor + playerOnesTurn*(1)) , Xcor - playerOnesTurn*1);
+		}
+		catch(ArrayIndexOutOfBoundsException ex){
+			;
+		}
+		
+		//check all positions on board to match up with original coor
+		for(ChessCor chsscr : listofValidPos)
+			if(MovCoor.compare(chsscr) == true){
+				piece.hasntmoved = false;
+				return true;
+			}
+		
+		
+		
+		return false;
+	}
+
+	public boolean MoveGeneral(PIECE piece, int X, int Y){
+	
 		PIECE P = piece;
-		//break down into special methods i.e MOVEPAWN(PIECE , X ,Y)
-	    Xcor = piece.x;
-	    Ycor = piece.y;
+	    int Xcor = piece.x;
+	    int Ycor = piece.y;
 		Piece_board[X][Y]  = P;
 		Piece_board[X][Y].y = Y;
 		Piece_board[X][Y].x = X;
 		Piece_board[Ycor][Xcor] = null;
 		return true;
+		
 	}
 	
 	 
